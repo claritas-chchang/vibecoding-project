@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Plus, CreditCard, Filter, X, Users, DollarSign } from 'lucide-react'
+import { Plus, CreditCard, Filter, X, Users, DollarSign, ArrowRight } from 'lucide-react'
 
 const ExpenseTracker = ({ familyMembers }) => {
     const constraintsRef = useRef(null)
@@ -18,6 +18,7 @@ const ExpenseTracker = ({ familyMembers }) => {
     }, [expenses])
 
     const [isModalOpen, setIsModalOpen] = useState(false)
+    const [selectedMember, setSelectedMember] = useState(null)
 
     // New Expense State
     const [newTitle, setNewTitle] = useState('')
@@ -25,22 +26,80 @@ const ExpenseTracker = ({ familyMembers }) => {
     const [newPayer, setNewPayer] = useState(familyMembers[0])
     const [newSplits, setNewSplits] = useState(familyMembers)
 
-    // Calculate balances
-    const calculateShares = () => {
-        const shares = {}
-        familyMembers.forEach(m => shares[m] = 0)
+    // Calculate stats and debts
+    const calculateStats = () => {
+        const stats = {}
+        familyMembers.forEach(m => stats[m] = { paid: 0, share: 0, net: 0 })
 
         expenses.forEach(exp => {
-            const share = exp.amount / exp.splitWith.length
+            // Paid
+            if (stats[exp.paidBy]) {
+                stats[exp.paidBy].paid += exp.amount
+            }
+
+            // Share
+            const splitCount = exp.splitWith.length || 1 // Avoid division by zero
+            const perPerson = exp.amount / splitCount
             exp.splitWith.forEach(person => {
-                shares[person] += share
+                if (stats[person]) {
+                    stats[person].share += perPerson
+                }
             })
         })
 
-        return shares
+        // Net
+        familyMembers.forEach(m => {
+            stats[m].net = stats[m].paid - stats[m].share
+        })
+
+        return stats
     }
 
-    const shares = calculateShares()
+    const calculateDebts = (stats) => {
+        const debtors = []
+        const creditors = []
+
+        Object.entries(stats).forEach(([member, data]) => {
+            if (data.net < -0.01) debtors.push({ member, amount: -data.net })
+            if (data.net > 0.01) creditors.push({ member, amount: data.net })
+        })
+
+        debtors.sort((a, b) => b.amount - a.amount)
+        creditors.sort((a, b) => b.amount - a.amount)
+
+        const transactions = []
+        let i = 0
+        let j = 0
+
+        while (i < debtors.length && j < creditors.length) {
+            const debtor = debtors[i]
+            const creditor = creditors[j]
+            const amount = Math.min(debtor.amount, creditor.amount)
+
+            if (amount > 0) {
+                transactions.push({
+                    from: debtor.member,
+                    to: creditor.member,
+                    amount: amount
+                })
+            }
+
+            debtor.amount -= amount
+            creditor.amount -= amount
+
+            if (debtor.amount < 0.01) i++
+            if (creditor.amount < 0.01) j++
+        }
+
+        return transactions
+    }
+
+    const stats = calculateStats()
+    const debts = calculateDebts(stats)
+
+    const filteredExpenses = selectedMember
+        ? expenses.filter(e => e.paidBy === selectedMember)
+        : expenses
 
     const handleAddExpense = (e) => {
         e.preventDefault()
@@ -94,7 +153,7 @@ const ExpenseTracker = ({ familyMembers }) => {
                 </div>
             </div>
 
-            <h3 style={{ fontSize: '1.1rem', marginBottom: '12px', fontWeight: '600' }}>Personal Expenses</h3>
+            <h3 style={{ fontSize: '1.1rem', marginBottom: '12px', fontWeight: '600' }}>Expenses Paid By Member</h3>
             <div
                 ref={constraintsRef}
                 className="no-scrollbar"
@@ -127,9 +186,13 @@ const ExpenseTracker = ({ familyMembers }) => {
                                 display: 'flex',
                                 flexDirection: 'column',
                                 alignItems: 'center',
-                                borderBottom: `3px solid var(--accent-blue)`,
-                                userSelect: 'none'
+                                borderBottom: `3px solid ${selectedMember === member ? 'var(--accent-blue)' : 'transparent'}`,
+                                userSelect: 'none',
+                                cursor: 'pointer',
+                                background: selectedMember === member ? 'var(--bg-primary)' : 'white',
+                                transition: 'all 0.2s'
                             }}
+                            onClick={() => setSelectedMember(selectedMember === member ? null : member)}
                         >
                             <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: 'var(--accent-blue-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--accent-blue)', marginBottom: '8px', fontWeight: '700' }}>
                                 {member[0]}
@@ -141,23 +204,60 @@ const ExpenseTracker = ({ familyMembers }) => {
                                 color: 'var(--text-primary)',
                                 marginTop: '4px'
                             }}>
-                                ${shares[member].toFixed(2)}
+                                ${stats[member].paid.toFixed(2)}
+                            </div>
+                            <div style={{ fontSize: '0.75rem', color: stats[member].net >= 0 ? 'var(--accent-blue)' : '#ff7675', marginTop: '2px' }}>
+                                {stats[member].net >= 0 ? '+' : ''}{stats[member].net.toFixed(2)}
                             </div>
                         </motion.div>
                     ))}
                 </motion.div>
             </div>
 
+            {debts.length > 0 && (
+                <div style={{ marginBottom: '24px' }}>
+                    <h3 style={{ fontSize: '1.1rem', marginBottom: '12px', fontWeight: '600' }}>Settlement Plan</h3>
+                    <div className="card" style={{ padding: '16px' }}>
+                        {debts.map((debt, index) => (
+                            <div key={index} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 0', borderBottom: index < debts.length - 1 ? '1px solid var(--border-color)' : 'none' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <span style={{ fontWeight: '600' }}>{debt.from}</span>
+                                    <span style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>owes</span>
+                                    <span style={{ fontWeight: '600' }}>{debt.to}</span>
+                                </div>
+                                <div style={{ fontWeight: '700', color: 'var(--accent-blue)' }}>${debt.amount.toFixed(2)}</div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-                <h3 style={{ fontSize: '1.1rem', fontWeight: '600' }}>Recent Expenses</h3>
-                <button style={{ background: 'none', border: 'none', color: 'var(--accent-blue)', fontSize: '0.85rem', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    <Filter size={14} /> Filter
+                <h3 style={{ fontSize: '1.1rem', fontWeight: '600' }}>
+                    {selectedMember ? `${selectedMember}'s Expenses` : 'Recent Expenses'}
+                </h3>
+                <button
+                    onClick={() => setSelectedMember(null)}
+                    style={{
+                        background: selectedMember ? 'var(--accent-blue)' : 'none',
+                        border: 'none',
+                        borderRadius: '12px',
+                        padding: '4px 8px',
+                        color: selectedMember ? 'white' : 'var(--accent-blue)',
+                        fontSize: '0.85rem',
+                        fontWeight: '600',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        cursor: 'pointer'
+                    }}>
+                    <Filter size={14} /> {selectedMember ? 'Clear Filter' : 'Filter'}
                 </button>
             </div>
 
             <div className="expense-list">
                 <AnimatePresence>
-                    {expenses.sort((a, b) => new Date(b.date) - new Date(a.date)).map(exp => (
+                    {filteredExpenses.sort((a, b) => new Date(b.date) - new Date(a.date)).map(exp => (
                         <motion.div
                             key={exp.id}
                             layout
@@ -187,7 +287,7 @@ const ExpenseTracker = ({ familyMembers }) => {
                             <div style={{ textAlign: 'right' }}>
                                 <div style={{ fontWeight: '700', fontSize: '1.05rem' }}>${exp.amount.toFixed(2)}</div>
                                 <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-                                    Split with {exp.splitWith.length}
+                                    Split with: {exp.splitWith.join(', ')}
                                 </div>
                             </div>
                         </motion.div>

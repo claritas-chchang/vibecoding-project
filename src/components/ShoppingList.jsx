@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Plus, Trash2, CheckCircle2, Circle, User, X, ShoppingCart } from 'lucide-react'
+import { Plus, Trash2, CheckCircle2, Circle, User, X, ShoppingCart, Edit2 } from 'lucide-react'
 
 const ShoppingList = ({ familyMembers }) => {
     const [items, setItems] = useState(() => {
         const saved = localStorage.getItem('homeplan_shopping')
         return saved ? JSON.parse(saved) : [
-            { id: 1, name: 'Eggs', quantity: '1 dozen', assignedTo: 'Mom', bought: false, date: new Date().toISOString().split('T')[0] },
-            { id: 2, name: 'Milk', quantity: '2L', assignedTo: 'Alex', bought: true, date: new Date().toISOString().split('T')[0] },
-            { id: 3, name: 'Detergent', quantity: '1 pack', assignedTo: 'Dad', bought: false, date: new Date().toISOString().split('T')[0] },
+            { id: 1, name: 'Eggs', quantity: '1 dozen', requestedBy: 'Mom', bought: false, date: new Date().toISOString().split('T')[0] },
+            { id: 2, name: 'Milk', quantity: '2L', requestedBy: 'Alex', bought: true, date: new Date().toISOString().split('T')[0] },
+            { id: 3, name: 'Detergent', quantity: '1 pack', requestedBy: 'Dad', bought: false, date: new Date().toISOString().split('T')[0] },
         ]
     })
 
@@ -19,23 +19,50 @@ const ShoppingList = ({ familyMembers }) => {
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [newName, setNewName] = useState('')
     const [newQty, setNewQty] = useState('')
-    const [newAssignee, setNewAssignee] = useState(familyMembers[0])
+    const [newRequester, setNewRequester] = useState(familyMembers[0])
+    const [editingItem, setEditingItem] = useState(null)
 
     const handleAddItem = (e) => {
         e.preventDefault()
         if (!newName.trim()) return
-        const item = {
-            id: Date.now(),
-            name: newName,
-            quantity: newQty || '1',
-            assignedTo: newAssignee,
-            bought: false,
-            date: new Date().toISOString().split('T')[0]
+
+        if (editingItem) {
+            setItems(items.map(item =>
+                item.id === editingItem.id
+                    ? { ...item, name: newName, quantity: newQty || '1', requestedBy: newRequester }
+                    : item
+            ))
+            setEditingItem(null)
+        } else {
+            const item = {
+                id: Date.now(),
+                name: newName,
+                quantity: newQty || '1',
+                requestedBy: newRequester,
+                bought: false,
+                date: new Date().toISOString().split('T')[0]
+            }
+            setItems([item, ...items])
         }
-        setItems([item, ...items])
         setIsModalOpen(false)
         setNewName('')
         setNewQty('')
+    }
+
+    const handleEditItem = (item) => {
+        setEditingItem(item)
+        setNewName(item.name)
+        setNewQty(item.quantity)
+        setNewRequester(item.requestedBy || item.assignedTo || familyMembers[0])
+        setIsModalOpen(true)
+    }
+
+    const handleCloseModal = () => {
+        setIsModalOpen(false)
+        setEditingItem(null)
+        setNewName('')
+        setNewQty('')
+        setNewRequester(familyMembers[0])
     }
 
     const toggleBought = (id) => {
@@ -84,20 +111,28 @@ const ShoppingList = ({ familyMembers }) => {
                                 </div>
                                 <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
                                     <span>{item.quantity}</span>
-                                    {item.assignedTo && (
+                                    {(item.requestedBy || item.assignedTo) && (
                                         <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                            <User size={12} /> {item.assignedTo}
+                                            <User size={12} /> {item.requestedBy || item.assignedTo}
                                         </span>
                                     )}
                                 </div>
                             </div>
 
-                            <button
-                                onClick={() => removeItem(item.id)}
-                                style={{ background: 'none', border: 'none', color: '#ff7675', opacity: 0.5, cursor: 'pointer' }}
-                            >
-                                <Trash2 size={18} />
-                            </button>
+                            <div style={{ display: 'flex', gap: '8px' }}>
+                                <button
+                                    onClick={() => handleEditItem(item)}
+                                    style={{ background: 'none', border: 'none', color: 'var(--accent-blue)', opacity: 0.5, cursor: 'pointer' }}
+                                >
+                                    <Edit2 size={18} />
+                                </button>
+                                <button
+                                    onClick={() => removeItem(item.id)}
+                                    style={{ background: 'none', border: 'none', color: '#ff7675', opacity: 0.5, cursor: 'pointer' }}
+                                >
+                                    <Trash2 size={18} />
+                                </button>
+                            </div>
                         </motion.div>
                     ))}
                 </AnimatePresence>
@@ -148,8 +183,8 @@ const ShoppingList = ({ familyMembers }) => {
                             }}
                         >
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                                <h3 style={{ fontSize: '1.25rem' }}>Add Item</h3>
-                                <button onClick={() => setIsModalOpen(false)} style={{ background: 'none', border: 'none', color: 'var(--text-secondary)' }}><X size={24} /></button>
+                                <h3 style={{ fontSize: '1.25rem' }}>{editingItem ? 'Edit Item' : 'Add Item'}</h3>
+                                <button onClick={handleCloseModal} style={{ background: 'none', border: 'none', color: 'var(--text-secondary)' }}><X size={24} /></button>
                             </div>
 
                             <form onSubmit={handleAddItem} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -172,10 +207,10 @@ const ShoppingList = ({ familyMembers }) => {
                                         />
                                     </div>
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                                        <label style={{ fontSize: '0.75rem', fontWeight: '600', color: 'var(--text-secondary)' }}>Assign To</label>
+                                        <label style={{ fontSize: '0.75rem', fontWeight: '600', color: 'var(--text-secondary)' }}>Request By</label>
                                         <select
-                                            value={newAssignee}
-                                            onChange={e => setNewAssignee(e.target.value)}
+                                            value={newRequester}
+                                            onChange={e => setNewRequester(e.target.value)}
                                             style={{ padding: '12px', borderRadius: '12px', border: '1px solid var(--border-color)', outline: 'none', background: 'white' }}
                                         >
                                             {familyMembers.map(m => <option key={m} value={m}>{m}</option>)}
@@ -184,7 +219,7 @@ const ShoppingList = ({ familyMembers }) => {
                                 </div>
 
                                 <button type="submit" className="btn-primary" style={{ marginTop: '12px', width: '100%', height: '52px' }}>
-                                    <ShoppingCart size={20} /> Add to List
+                                    <ShoppingCart size={20} /> {editingItem ? 'Update Item' : 'Add to List'}
                                 </button>
                             </form>
                         </motion.div>

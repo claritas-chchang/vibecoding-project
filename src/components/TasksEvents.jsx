@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Calendar, CheckCircle2, Circle, Clock, AlertCircle, Plus, User, X } from 'lucide-react'
+import { Calendar, CheckCircle2, Circle, Clock, AlertCircle, Plus, User, X, Edit2, Trash2 } from 'lucide-react'
 
 const TasksEvents = ({ familyMembers }) => {
     const [items, setItems] = useState(() => {
@@ -26,6 +26,7 @@ const TasksEvents = ({ familyMembers }) => {
     const [newDue, setNewDue] = useState('')
     const [newDate, setNewDate] = useState(new Date().toISOString().split('T')[0])
     const [newPriority, setNewPriority] = useState('medium')
+    const [editingItem, setEditingItem] = useState(null)
 
     const toggleComplete = (id) => {
         setItems(items.map(item =>
@@ -37,21 +38,64 @@ const TasksEvents = ({ familyMembers }) => {
         e.preventDefault()
         if (!newTitle.trim()) return
 
-        const newItem = {
-            id: Date.now(),
-            type: newType,
-            title: newTitle,
-            assignedTo: newAssignee,
-            dueDate: newDue || 'Unscheduled',
-            date: newDate, // Added for calendar sync
-            priority: newType === 'task' ? newPriority : null,
-            completed: false
+        if (editingItem) {
+            setItems(items.map(item =>
+                item.id === editingItem.id
+                    ? {
+                        ...item,
+                        type: newType,
+                        title: newTitle,
+                        assignedTo: newAssignee,
+                        dueDate: newDue || 'Unscheduled',
+                        date: newDate,
+                        priority: newType === 'task' ? newPriority : null
+                    }
+                    : item
+            ))
+            setEditingItem(null)
+        } else {
+            const newItem = {
+                id: Date.now(),
+                type: newType,
+                title: newTitle,
+                assignedTo: newAssignee,
+                dueDate: newDue || 'Unscheduled',
+                date: newDate, // Added for calendar sync
+                priority: newType === 'task' ? newPriority : null,
+                completed: false
+            }
+            setItems([newItem, ...items])
         }
 
-        setItems([newItem, ...items])
         setIsModalOpen(false)
         setNewTitle('')
         setNewDue('')
+    }
+
+    const handleEditItem = (item) => {
+        setEditingItem(item)
+        setNewType(item.type)
+        setNewTitle(item.title)
+        setNewAssignee(item.assignedTo)
+        setNewDue(item.dueDate === 'Unscheduled' ? '' : item.dueDate)
+        setNewDate(item.date)
+        if (item.priority) setNewPriority(item.priority)
+        setIsModalOpen(true)
+    }
+
+    const handleCloseModal = () => {
+        setIsModalOpen(false)
+        setEditingItem(null)
+        setNewTitle('')
+        setNewDue('')
+        setNewType('task')
+        setNewAssignee(familyMembers[0])
+        setNewDate(new Date().toISOString().split('T')[0])
+        setNewPriority('medium')
+    }
+
+    const removeItem = (id) => {
+        setItems(items.filter(item => item.id !== id))
     }
 
     const getPriorityColor = (priority) => {
@@ -144,6 +188,20 @@ const TasksEvents = ({ familyMembers }) => {
                                         )}
                                     </div>
                                 </div>
+                                <div style={{ display: 'flex', gap: '8px', opacity: 0.5 }}>
+                                    <button
+                                        onClick={() => handleEditItem(item)}
+                                        style={{ background: 'none', border: 'none', color: 'var(--accent-blue)', cursor: 'pointer' }}
+                                    >
+                                        <Edit2 size={18} />
+                                    </button>
+                                    <button
+                                        onClick={() => removeItem(item.id)}
+                                        style={{ background: 'none', border: 'none', color: '#ff7675', cursor: 'pointer' }}
+                                    >
+                                        <Trash2 size={18} />
+                                    </button>
+                                </div>
                             </div>
                         </motion.div>
                     ))}
@@ -186,8 +244,8 @@ const TasksEvents = ({ familyMembers }) => {
                             }}
                         >
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                                <h3 style={{ fontSize: '1.25rem' }}>Add New Item</h3>
-                                <button onClick={() => setIsModalOpen(false)} style={{ background: 'none', border: 'none', color: 'var(--text-secondary)' }}><X size={24} /></button>
+                                <h3 style={{ fontSize: '1.25rem' }}>{editingItem ? 'Edit Item' : 'Add New Item'}</h3>
+                                <button onClick={handleCloseModal} style={{ background: 'none', border: 'none', color: 'var(--text-secondary)' }}><X size={24} /></button>
                             </div>
 
                             <form onSubmit={handleAddItem} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -272,7 +330,7 @@ const TasksEvents = ({ familyMembers }) => {
                                 )}
 
                                 <button type="submit" className="btn-primary" style={{ marginTop: '8px', width: '100%' }}>
-                                    Add to Agenda
+                                    {editingItem ? 'Update Agenda' : 'Add to Agenda'}
                                 </button>
                             </form>
                         </motion.div>
