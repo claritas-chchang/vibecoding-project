@@ -158,7 +158,7 @@ const ShoppingList = ({ familyMembers }) => {
             {/* Add Modal */}
             <AnimatePresence>
                 {isModalOpen && (
-                    <div style={{ position: 'fixed', inset: 0, zIndex: 2000, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
+                    <div style={{ position: 'fixed', inset: 0, zIndex: 2001, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
                         <motion.div
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
@@ -179,7 +179,8 @@ const ShoppingList = ({ familyMembers }) => {
                                 borderTopLeftRadius: '24px',
                                 borderTopRightRadius: '24px',
                                 padding: '24px',
-                                paddingBottom: 'calc(24px + var(--safe-area-inset-bottom))'
+                                paddingBottom: 'calc(48px + var(--safe-area-inset-bottom))',
+                                marginBottom: 'env(safe-area-inset-bottom)'
                             }}
                         >
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
