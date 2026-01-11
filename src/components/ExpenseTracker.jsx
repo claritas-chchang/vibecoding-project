@@ -327,7 +327,7 @@ const ExpenseTracker = ({ familyMembers }) => {
                                 borderTopLeftRadius: '24px',
                                 borderTopRightRadius: '24px',
                                 padding: '24px',
-                                paddingBottom: 'calc(48px + var(--safe-area-inset-bottom))',
+                                paddingBottom: 'calc(96px + var(--safe-area-inset-bottom))',
                                 marginBottom: 'env(safe-area-inset-bottom)'
                             }}
                         >
