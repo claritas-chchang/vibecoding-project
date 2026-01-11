@@ -1,0 +1,8 @@
+# Netlify Deployment Configuration
+
+## Build Settings
+- **Build Command:** `npm run build`
+- **Publish Directory:** `dist`
+
+## Redirects (for Single Page Application)
+/*  /index.html  200
