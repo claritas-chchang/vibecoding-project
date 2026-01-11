@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
+import { sendLocalNotification } from '../utils/notifications'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Plus, CreditCard, Filter, X, Users, DollarSign, ArrowRight } from 'lucide-react'
 
@@ -115,6 +116,9 @@ const ExpenseTracker = ({ familyMembers }) => {
         }
 
         setExpenses([newExp, ...expenses])
+        sendLocalNotification(`New Expense: $${newExp.amount.toFixed(2)}`, {
+            body: `${newExp.paidBy} paid for ${newExp.title}.`
+        })
         setIsModalOpen(false)
         setNewTitle('')
         setNewAmount('')

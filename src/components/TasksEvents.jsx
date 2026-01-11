@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { sendLocalNotification } from '../utils/notifications'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Calendar, CheckCircle2, Circle, Clock, AlertCircle, Plus, User, X, Edit2, Trash2 } from 'lucide-react'
 
@@ -65,6 +66,9 @@ const TasksEvents = ({ familyMembers }) => {
                 completed: false
             }
             setItems([newItem, ...items])
+            sendLocalNotification(`New ${newItem.type === 'task' ? 'Task' : 'Event'}: ${newItem.title}`, {
+                body: `${newItem.assignedTo} is assigned to ${newItem.title}.`
+            })
         }
 
         setIsModalOpen(false)

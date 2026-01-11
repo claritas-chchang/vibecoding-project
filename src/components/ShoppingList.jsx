@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Plus, Trash2, CheckCircle2, Circle, User, X, ShoppingCart, Edit2 } from 'lucide-react'
+import { sendLocalNotification } from '../utils/notifications'
 
 const ShoppingList = ({ familyMembers }) => {
     const [items, setItems] = useState(() => {
@@ -43,6 +44,9 @@ const ShoppingList = ({ familyMembers }) => {
                 date: new Date().toISOString().split('T')[0]
             }
             setItems([item, ...items])
+            sendLocalNotification(`New Item: ${item.name}`, {
+                body: `${item.requestedBy} added ${item.quantity} ${item.name} to the list.`
+            })
         }
         setIsModalOpen(false)
         setNewName('')
