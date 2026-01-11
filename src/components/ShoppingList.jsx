@@ -4,7 +4,7 @@ import { Plus, Trash2, CheckCircle2, Circle, User, X, ShoppingCart } from 'lucid
 
 const ShoppingList = ({ familyMembers }) => {
     const [items, setItems] = useState(() => {
-        const saved = localStorage.getItem('weplan_shopping')
+        const saved = localStorage.getItem('homeplan_shopping')
         return saved ? JSON.parse(saved) : [
             { id: 1, name: 'Eggs', quantity: '1 dozen', assignedTo: 'Mom', bought: false, date: new Date().toISOString().split('T')[0] },
             { id: 2, name: 'Milk', quantity: '2L', assignedTo: 'Alex', bought: true, date: new Date().toISOString().split('T')[0] },
@@ -13,7 +13,7 @@ const ShoppingList = ({ familyMembers }) => {
     })
 
     useEffect(() => {
-        localStorage.setItem('weplan_shopping', JSON.stringify(items))
+        localStorage.setItem('homeplan_shopping', JSON.stringify(items))
     }, [items])
 
     const [isModalOpen, setIsModalOpen] = useState(false)

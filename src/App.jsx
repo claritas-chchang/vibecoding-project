@@ -39,7 +39,7 @@ const App = () => {
                     animate={{ opacity: 1, y: 0 }}
                     style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}
                 >
-                    <h1><Home size={24} /> WePlan</h1>
+                    <h1><Home size={24} /> HomePlan</h1>
                     <div style={{ background: 'var(--accent-blue-soft)', padding: '6px 12px', borderRadius: '20px', fontSize: '0.8rem', fontWeight: '600', color: 'var(--accent-blue)' }}>
                         Family Mode
                     </div>

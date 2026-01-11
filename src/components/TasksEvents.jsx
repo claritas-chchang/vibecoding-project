@@ -4,7 +4,7 @@ import { Calendar, CheckCircle2, Circle, Clock, AlertCircle, Plus, User, X } fro
 
 const TasksEvents = ({ familyMembers }) => {
     const [items, setItems] = useState(() => {
-        const saved = localStorage.getItem('weplan_tasks')
+        const saved = localStorage.getItem('homeplan_tasks')
         return saved ? JSON.parse(saved) : [
             { id: 1, type: 'task', title: 'Vacuum living room', assignedTo: 'Alex', dueDate: 'Thursday', date: new Date().toISOString().split('T')[0], priority: 'medium', completed: false },
             { id: 2, type: 'event', title: 'Aircond servicing', assignedTo: 'All', dueDate: 'Saturday 3 PM', date: new Date(Date.now() + 86400000).toISOString().split('T')[0], completed: false },
@@ -13,7 +13,7 @@ const TasksEvents = ({ familyMembers }) => {
     })
 
     useEffect(() => {
-        localStorage.setItem('weplan_tasks', JSON.stringify(items))
+        localStorage.setItem('homeplan_tasks', JSON.stringify(items))
     }, [items])
 
     const [activeFilter, setActiveFilter] = useState('all')

@@ -5,7 +5,7 @@ import { Plus, CreditCard, Filter, X, Users, DollarSign } from 'lucide-react'
 const ExpenseTracker = ({ familyMembers }) => {
     const constraintsRef = useRef(null)
     const [expenses, setExpenses] = useState(() => {
-        const saved = localStorage.getItem('weplan_expenses')
+        const saved = localStorage.getItem('homeplan_expenses')
         return saved ? JSON.parse(saved) : [
             { id: 1, title: 'Groceries', amount: 85.50, paidBy: 'Mom', splitWith: ['Alex', 'Mom', 'Dad', 'Sam'], date: '2026-01-08' },
             { id: 2, title: 'Electricity Bill', amount: 120.00, paidBy: 'Dad', splitWith: ['Mom', 'Dad'], date: '2026-01-05' },
@@ -14,7 +14,7 @@ const ExpenseTracker = ({ familyMembers }) => {
     })
 
     useEffect(() => {
-        localStorage.setItem('weplan_expenses', JSON.stringify(expenses))
+        localStorage.setItem('homeplan_expenses', JSON.stringify(expenses))
     }, [expenses])
 
     const [isModalOpen, setIsModalOpen] = useState(false)

@@ -5,9 +5,9 @@ import CalendarView from './CalendarView'
 
 const Dashboard = ({ familyMembers, setActiveTab }) => {
     // Get data from localStorage
-    const tasks = JSON.parse(localStorage.getItem('weplan_tasks') || '[]')
-    const shopping = JSON.parse(localStorage.getItem('weplan_shopping') || '[]')
-    const expenses = JSON.parse(localStorage.getItem('weplan_expenses') || '[]')
+    const tasks = JSON.parse(localStorage.getItem('homeplan_tasks') || '[]')
+    const shopping = JSON.parse(localStorage.getItem('homeplan_shopping') || '[]')
+    const expenses = JSON.parse(localStorage.getItem('homeplan_expenses') || '[]')
 
     const pendingTasks = tasks.filter(t => !t.completed).length
     const itemsToBuy = shopping.filter(i => !i.bought).length
@@ -17,7 +17,7 @@ const Dashboard = ({ familyMembers, setActiveTab }) => {
         <div className="dashboard-view">
             <div style={{ marginBottom: '24px' }}>
                 <h2 style={{ fontSize: '1.5rem', marginBottom: '4px' }}>Hello, Home!</h2>
-                <p style={{ color: 'var(--text-secondary)', fontWeight: '500' }}>WePlan. So you don't forget.</p>
+                <p style={{ color: 'var(--text-secondary)', fontWeight: '500' }}>HomePlan. So you don't forget.</p>
             </div>
 
             <motion.div

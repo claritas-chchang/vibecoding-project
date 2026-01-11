@@ -15,9 +15,9 @@ const CalendarView = ({ familyMembers }) => {
     const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0])
 
     // Get data from localStorage
-    const tasks = useMemo(() => JSON.parse(localStorage.getItem('weplan_tasks') || '[]'), [])
-    const shopping = useMemo(() => JSON.parse(localStorage.getItem('weplan_shopping') || '[]'), [])
-    const expenses = useMemo(() => JSON.parse(localStorage.getItem('weplan_expenses') || '[]'), [])
+    const tasks = useMemo(() => JSON.parse(localStorage.getItem('homeplan_tasks') || '[]'), [])
+    const shopping = useMemo(() => JSON.parse(localStorage.getItem('homeplan_shopping') || '[]'), [])
+    const expenses = useMemo(() => JSON.parse(localStorage.getItem('homeplan_expenses') || '[]'), [])
 
     // Generate 14 days from today
     const dates = useMemo(() => {

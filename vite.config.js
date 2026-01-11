@@ -10,8 +10,8 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon-v2.png', 'mask-icon.svg'],
       manifest: {
-        name: 'WePlan – Household Planning Made Simple',
-        short_name: 'WePlan',
+        name: 'HomePlan – Household Planning Made Simple',
+        short_name: 'HomePlan',
         description: 'Coordinate your home life with Shared Expense Tracking, Unified Tasks, and a Synchronized Shopping List.',
         theme_color: '#ffffff',
         icons: [
